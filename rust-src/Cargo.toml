@@ -1,0 +1,33 @@
+[package]
+name = "microtris"
+version = "0.1.0"
+authors = ["Zack Sargent <zack@zack.fyi>"]
+edition = "2021"
+license = "MIT"
+
+[[bin]]
+name = "microtris"
+test = false
+bench = false
+
+[dependencies]
+ag-lcd = { git = "https://github.com/mjhouse/ag-lcd", rev = "a91d1b2ee47487f7abf9935723f5c4888fc79135" }
+panic-halt = "0.2.0"
+
+[dependencies.arduino-hal]
+git = "https://github.com/rahix/avr-hal"
+rev = "84af1c72693893449cf93b6a4449df58c57c21e6"
+features = ["arduino-uno"]
+
+# Configure the build for minimal size - AVRs have very little program memory
+[profile.dev]
+panic = "abort"
+lto = true
+opt-level = "s"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = true
+lto = true
+opt-level = "s"
