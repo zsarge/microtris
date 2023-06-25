@@ -17,12 +17,14 @@ public:
     uint8_t pixelsWide;
     uint8_t pixelsTall;
   } board = { 4, 2, 4 * 5, 2 * 8 };
+  LiquidCrystal* lcd;
 
-  Display();
+  Display(LiquidCrystal* lcd);
 
   void printToSerial();
-  void printToLcd(LiquidCrystal& lcd);
+  void printToLcd();
 
+  bool get(uint8_t x, uint8_t y);
   void draw(uint8_t x, uint8_t y);
   void erase(uint8_t x, uint8_t y);
   void toggle(uint8_t x, uint8_t y);

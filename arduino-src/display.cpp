@@ -1,14 +1,7 @@
 #include "display.hpp"
 
-uint8_t Display::getCharacterBlock(uint8_t x, uint8_t y) {
-  if (y < 8) {
-    return x / character.pixelsWide;
-  } else {
-    return (x / character.pixelsWide) + 3;
-  }
-}
-
-Display::Display() {
+Display::Display(LiquidCrystal* lcd) {
+  this->lcd = lcd;
   for (int i = 0; i < board.charsWide * board.charsTall; i++) {
     for (int y = 0; y < character.pixelsTall; y++) {
       charBuffer[i][y] = 0;
@@ -38,19 +31,19 @@ void Display::printToSerial() {
   printLineToSerial();
 }
 
-void Display::printToLcd(LiquidCrystal& lcd) {
+void Display::printToLcd() {
   for (int i = 0; i < board.charsTall * board.charsWide; i++) {
-    lcd.createChar(i, charBuffer[i]);
+    lcd->createChar(i, charBuffer[i]);
   }
 
-  lcd.setCursor(0, 0);
+  lcd->setCursor(0, 0);
   for (uint8_t i = 0; i < board.charsWide; i++) {
-    lcd.write(i);
+    lcd->write(i);
   }
 
-  lcd.setCursor(0, 1);
+  lcd->setCursor(0, 1);
   for (uint8_t i = 0; i < board.charsWide; i++) {
-    lcd.write(i + 3);
+    lcd->write(i + 3);
   }
 }
 
@@ -64,6 +57,12 @@ void Display::erase(uint8_t x, uint8_t y) {
 
 void Display::toggle(uint8_t x, uint8_t y) {
   charBuffer[getCharacterBlock(x, y)][y % character.pixelsTall] ^= getPattern(x);
+}
+
+bool Display::get(uint8_t x, uint8_t y) {
+  return bitRead(
+    charBuffer[getCharacterBlock(x, y)][y % character.pixelsTall],
+    5 - (x % character.pixelsWide));
 }
 
 void Display::fill() {
@@ -102,4 +101,12 @@ void Display::printLineToSerial() {
     Serial.print('-');
   }
   Serial.println();
+}
+
+uint8_t Display::getCharacterBlock(uint8_t x, uint8_t y) {
+  if (y < 8) {
+    return x / character.pixelsWide;
+  } else {
+    return (x / character.pixelsWide) + 3;
+  }
 }
