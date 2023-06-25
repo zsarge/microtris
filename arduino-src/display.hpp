@@ -17,7 +17,6 @@ public:
     uint8_t pixelsWide;
     uint8_t pixelsTall;
   } board = { 4, 2, 4 * 5, 2 * 8 };
-  LiquidCrystal* lcd;
 
   Display(LiquidCrystal* lcd);
 
@@ -32,6 +31,7 @@ public:
   void clear();
 
 private:
+  LiquidCrystal* lcd;
   uint8_t getCharacterBlock(uint8_t x, uint8_t y);
   void printByte(byte val);
   byte getPattern(uint8_t x);
