@@ -142,11 +142,21 @@ void setup() {
   lcd.begin(16, 2);
   lcd.clear();
 
-  display.fill();
-  for (uint8_t y = 0; y < display.board.pixelsTall; y++)
-    for (uint8_t x = 0; x < display.board.pixelsWide; x++)
-      if (x % 2 == 0 || y % 2 == 0)
-        display.erase(x, y);
+  bool myDesign[8][7] = {
+    { 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 1, 0, 0, 0, 1, 0 },
+    { 0, 1, 0, 0, 0, 1, 0 },
+    { 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 0, 0, 1 },
+    { 0, 1, 0, 0, 0, 1, 0 },
+    { 0, 0, 1, 1, 1, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0 },
+  };
+
+  for (int y = 0; y < 8; y++)
+    for (int x = 0; x < 7; x++)
+      if (myDesign[y][x])
+        display.draw(x + 6, y);
 
   Serial.println("Serial Port Initalized...");
   display.print_to_serial();
@@ -154,7 +164,15 @@ void setup() {
 }
 
 void loop() {
-  display.toggle(10, 10);
+  uint8_t coords[4][2] = {
+    { 1, 1 },
+    { 1, 2 },
+    { 5, 1 },
+    { 5, 2 },
+  };
+  for (auto [x, y] : coords)
+    display.toggle(x + 6, y);
+
   display.print_to_lcd(lcd);
   delay(1000);
 }
