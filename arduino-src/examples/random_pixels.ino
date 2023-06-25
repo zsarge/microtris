@@ -22,9 +22,5 @@ void loop() {
         display.toggle(x, y);
 
   display.printToLcd(lcd);
-  lcd.setCursor(6, 0);
-  lcd.write("Conway's");
-  lcd.setCursor(4, 1);
-  lcd.write("Game of Life");
   delay(1000);
 }
