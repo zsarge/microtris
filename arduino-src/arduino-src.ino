@@ -9,6 +9,7 @@ TODO:
 class Display {
 private:
   byte charBuffer[8][8];
+public:
   struct {
     uint8_t pixelsWide;
     uint8_t pixelsTall;
@@ -20,7 +21,7 @@ private:
     uint8_t pixelsTall;
   } board = { 4, 2, 4 * 5, 2 * 8 };
 
-public:
+
   uint8_t getCharacterBlock(uint8_t x, uint8_t y) {
     if (y < 8) {
       return x / character.pixelsWide;
@@ -48,6 +49,7 @@ public:
       }
       Serial.println();
     }
+
     // print bottom row
     for (uint8_t y = 0; y < character.pixelsTall; y++) {  // for every pixelRow in first row
       for (uint8_t i = 0; i < 4; i++) {                   // print the columns
@@ -61,6 +63,19 @@ public:
 
   // TODO: Fix naming conventions
   void print_to_lcd(LiquidCrystal& lcd) {
+    for (int i = 0; i < board.charsTall * board.charsWide; i++) {
+      lcd.createChar(i, charBuffer[i]);
+    }
+
+    lcd.setCursor(0, 0);
+    for (uint8_t i = 0; i < board.charsWide; i++) {
+      lcd.write(i);
+    }
+
+    lcd.setCursor(0, 1);
+    for (uint8_t i = 0; i < board.charsWide; i++) {
+      lcd.write(i + 3);
+    }
   }
 
   byte get(uint8_t x, uint8_t y) {
@@ -111,15 +126,17 @@ void setup() {
   lcd.begin(16, 2);
   lcd.clear();
 
-  for (uint8_t y = 0; y < 8; y++)
-    for (uint8_t x = 0; x < 8; x++)
+  for (uint8_t y = 0; y < display.board.pixelsTall; y++)
+    for (uint8_t x = 0; x < display.board.pixelsWide; x++)
       display.draw(x, y);
-
-  display.erase(7, 7);
+  for (uint8_t y = 0; y < display.board.pixelsTall; y++)
+    for (uint8_t x = 0; x < display.board.pixelsWide; x++)
+      if (x % 2 == 0 || y % 2 == 0)
+        display.erase(x, y);
 
   Serial.println("Serial Port Initalized...");
   display.print_to_serial();
-  // display.print_to_lcd(lcd);
+  display.print_to_lcd(lcd);
 }
 
 void loop() {}
