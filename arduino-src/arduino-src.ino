@@ -39,8 +39,8 @@ public:
   }
 
 
-  void print_to_serial() {
-    print_line_to_serial();
+  void printToSerial() {
+    printLineToSerial();
 
     // print top row
     for (uint8_t y = 0; y < character.pixelsTall; y++) {  // for every pixelRow in first row
@@ -58,11 +58,11 @@ public:
       Serial.println();
     }
 
-    print_line_to_serial();
+    printLineToSerial();
   }
 
   // TODO: Fix naming conventions
-  void print_to_lcd(LiquidCrystal& lcd) {
+  void printToLcd(LiquidCrystal& lcd) {
     for (int i = 0; i < board.charsTall * board.charsWide; i++) {
       lcd.createChar(i, charBuffer[i]);
     }
@@ -126,7 +126,7 @@ private:
     return initialState >> x % character.pixelsWide;
   }
 
-  void print_line_to_serial() {
+  void printLineToSerial() {
     for (uint8_t x = 0; x < board.pixelsWide; x++) {
       Serial.print('-');
     }
@@ -140,8 +140,8 @@ Display display = Display();
 void setup() {
   Serial.begin(9600);  // open the serial port at 9600 bps:
   lcd.begin(16, 2);
-  lcd.clear();
 
+  // design stored as bits
   bool myDesign[8][7] = {
     { 0, 0, 0, 0, 0, 0, 0 },
     { 0, 1, 0, 0, 0, 1, 0 },
@@ -159,11 +159,12 @@ void setup() {
         display.draw(x + 6, y);
 
   Serial.println("Serial Port Initalized...");
-  display.print_to_serial();
-  display.print_to_lcd(lcd);
+  display.printToSerial();
+  display.printToLcd(lcd);
 }
 
 void loop() {
+  // design stored as coords
   uint8_t coords[4][2] = {
     { 1, 1 },
     { 1, 2 },
@@ -173,6 +174,6 @@ void loop() {
   for (auto [x, y] : coords)
     display.toggle(x + 6, y);
 
-  display.print_to_lcd(lcd);
+  display.printToLcd(lcd);
   delay(1000);
 }
