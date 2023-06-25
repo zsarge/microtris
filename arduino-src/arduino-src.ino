@@ -90,6 +90,26 @@ public:
     charBuffer[getCharacterBlock(x, y)][y % character.pixelsTall] &= getPattern(x, 0b11101111);
   }
 
+  void toggle(uint8_t x, uint8_t y) {
+    charBuffer[getCharacterBlock(x, y)][y % character.pixelsTall] ^= getPattern(x);
+  }
+
+  void fill() {
+    for (uint8_t i = 0; i < board.charsTall * board.charsWide; i++) {
+      for (int8_t y = 0; y < character.pixelsTall; y++) {
+        charBuffer[i][y] = 0b11111;
+      }
+    }
+  }
+
+  void clear() {
+    for (uint8_t i = 0; i < board.charsTall * board.charsWide; i++) {
+      for (int8_t y = 0; y < character.pixelsTall; y++) {
+        charBuffer[i][y] = 0;
+      }
+    }
+  }
+
 private:
   void printByte(byte val) {
     for (int j = 4; j >= 0; j--) {
@@ -103,11 +123,7 @@ private:
   }
 
   byte getPattern(uint8_t x, uint8_t initialState) {
-    uint8_t pattern = initialState;
-    for (uint8_t i = 0; i < x % character.pixelsWide; i++) {
-      pattern = pattern >> 1;
-    }
-    return pattern;
+    return initialState >> x % character.pixelsWide;
   }
 
   void print_line_to_serial() {
@@ -126,9 +142,7 @@ void setup() {
   lcd.begin(16, 2);
   lcd.clear();
 
-  for (uint8_t y = 0; y < display.board.pixelsTall; y++)
-    for (uint8_t x = 0; x < display.board.pixelsWide; x++)
-      display.draw(x, y);
+  display.fill();
   for (uint8_t y = 0; y < display.board.pixelsTall; y++)
     for (uint8_t x = 0; x < display.board.pixelsWide; x++)
       if (x % 2 == 0 || y % 2 == 0)
@@ -139,4 +153,8 @@ void setup() {
   display.print_to_lcd(lcd);
 }
 
-void loop() {}
+void loop() {
+  display.toggle(10, 10);
+  display.print_to_lcd(lcd);
+  delay(1000);
+}
