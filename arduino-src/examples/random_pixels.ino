@@ -7,7 +7,7 @@ TODO:
 */
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-Display display = Display();
+Display display = Display(&lcd);
 
 void setup() {
   Serial.begin(9600);  // open the serial port at 9600 bps:
@@ -21,6 +21,6 @@ void loop() {
       if (random(0, 2) == 1)
         display.toggle(x, y);
 
-  display.printToLcd(lcd);
+  display.printToLcd();
   delay(1000);
 }
