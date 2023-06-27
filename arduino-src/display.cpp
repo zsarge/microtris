@@ -22,8 +22,8 @@ void Display::printToSerial() {
 
   // print bottom row
   for (uint8_t y = 0; y < character.pixelsTall; y++) {  // for every pixelRow in first row
-    for (uint8_t i = 0; i < 4; i++) {                   // print the columns
-      printByte(charBuffer[i + 3][y]);
+    for (uint8_t i = 4; i < 8; i++) {                   // print the columns
+      printByte(charBuffer[i][y]);
     }
     Serial.println();
   }
@@ -43,7 +43,7 @@ void Display::printToLcd() {
 
   lcd->setCursor(0, 1);
   for (uint8_t i = 0; i < board.charsWide; i++) {
-    lcd->write(i + 3);
+    lcd->write(i + 4);
   }
 }
 
@@ -53,6 +53,14 @@ void Display::draw(uint8_t x, uint8_t y) {
 
 void Display::erase(uint8_t x, uint8_t y) {
   charBuffer[getCharacterBlock(x, y)][y % character.pixelsTall] &= getPattern(x, 0b11101111);
+}
+
+void Display::set(uint8_t x, uint8_t y, bool state) {
+  if (state) {
+    draw(x, y);
+  } else {
+    erase(x, y);
+  }
 }
 
 void Display::toggle(uint8_t x, uint8_t y) {
@@ -107,6 +115,6 @@ uint8_t Display::getCharacterBlock(uint8_t x, uint8_t y) {
   if (y < 8) {
     return x / character.pixelsWide;
   } else {
-    return (x / character.pixelsWide) + 3;
+    return (x / character.pixelsWide) + 4;
   }
 }

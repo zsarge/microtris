@@ -26,6 +26,7 @@ public:
   bool get(uint8_t x, uint8_t y);
   void draw(uint8_t x, uint8_t y);
   void erase(uint8_t x, uint8_t y);
+  void set(uint8_t x, uint8_t y, bool state);
   void toggle(uint8_t x, uint8_t y);
   void fill();
   void clear();
