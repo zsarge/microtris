@@ -66,10 +66,24 @@ public:
 
 Piece::~Piece() {}  // need to explicitly define this, to avoid linker errors
 uint8_t Piece::getHeight() {
-  return 0;  // should never get called
+  switch (direction) {
+    case North:
+    case South:
+      return 3;
+    case East:
+    case West:
+      return 2;
+  }
 }
 uint8_t Piece::getWidth() {
-  return 0;  // should never get called
+  switch (direction) {
+    case North:
+    case South:
+      return 2;
+    case East:
+    case West:
+      return 3;
+  }
 }
 bool Piece::at(uint8_t x, uint8_t y) {
   return false;  // should never get called
@@ -77,26 +91,6 @@ bool Piece::at(uint8_t x, uint8_t y) {
 
 class J : public Piece {
 public:
-  uint8_t getHeight() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 3;
-      case East:
-      case West:
-        return 2;
-    }
-  }
-  uint8_t getWidth() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 2;
-      case East:
-      case West:
-        return 3;
-    }
-  }
   // is there a more efficent way to do this? probably
   bool at(uint8_t x, uint8_t y) override {
     if (x > getWidth() || y > getHeight()) return false;
@@ -129,27 +123,6 @@ public:
 
 class L : public Piece {
 public:
-  uint8_t getHeight() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 3;
-      case East:
-      case West:
-        return 2;
-    }
-  }
-  uint8_t getWidth() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 2;
-      case East:
-      case West:
-        return 3;
-    }
-  }
-
   bool at(uint8_t x, uint8_t y) override {
     if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
@@ -181,27 +154,6 @@ public:
 
 class T : public Piece {
 public:
-  uint8_t getHeight() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 3;
-      case East:
-      case West:
-        return 2;
-    }
-  }
-  uint8_t getWidth() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 2;
-      case East:
-      case West:
-        return 3;
-    }
-  }
-
   bool at(uint8_t x, uint8_t y) override {
     if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
@@ -276,27 +228,6 @@ public:
 
 class S : public Piece {
 public:
-  uint8_t getHeight() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 3;
-      case East:
-      case West:
-        return 2;
-    }
-  }
-  uint8_t getWidth() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 2;
-      case East:
-      case West:
-        return 3;
-    }
-  }
-
   bool at(uint8_t x, uint8_t y) override {
     if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
@@ -328,27 +259,6 @@ public:
 
 class Z : public Piece {
 public:
-  uint8_t getHeight() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 3;
-      case East:
-      case West:
-        return 2;
-    }
-  }
-  uint8_t getWidth() override {
-    switch (direction) {
-      case North:
-      case South:
-        return 2;
-      case East:
-      case West:
-        return 3;
-    }
-  }
-
   bool at(uint8_t x, uint8_t y) override {
     if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
@@ -398,8 +308,8 @@ private:
   }
 
   void setNextPiece() {
-    delete piece;
-    piece = new I();
+    // delete piece;
+    // piece = new I();
     // piece = new O();
     // piece = new T();
     // piece = new S();
@@ -427,9 +337,9 @@ public:
       for (uint8_t x = 0; x < width; x++)
         this->droppedBuffer[y][x] = false;
     resetToTop();
-    // piece = new I();
+    piece = new I();
     // piece = new O();
-    piece = new T();
+    // piece = new T();
     // piece = new S();
     // piece = new Z();
     // piece = new J();
@@ -439,17 +349,6 @@ public:
   ~Minitris() {
     delete this->display;
     delete piece;
-  }
-
-  // for use in scanning through a piece to see its state
-  // after rotation
-  bool at(uint8_t piece_x, uint8_t piece_y) {
-    if (piece_x > 4 || piece_y > 4) return;
-    // TODO: create instance variables:
-    // - PieceName piece
-    // - Direction direction
-    // - uint8_T x_offset // in relation to the board
-    // - uint8_T y_offset
   }
 
   ButtonState readButton() {
@@ -463,12 +362,6 @@ public:
     return None;  // not sure how this would happen
   }
 
-  // void rotateCounterClockwise() {
-  //   switch (direction) {
-  //     case Up:
-  //     direction = Left
-  //   }
-  // }
 
   void moveLeft() {
     if (x_offset > 0)
