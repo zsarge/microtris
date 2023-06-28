@@ -82,6 +82,20 @@ public:
     delete this->display;
   }
 
+// for use in scanning through a piece to see its state
+// after rotation
+  bool at(uint8_t piece_x, uint8_t piece_y) {
+    if (piece_x > 4 || piece_y > 4) return;
+    // TODO: create instance variables:
+    // - PieceName piece
+    // - Direction direction
+    // - uint8_T x_offset // in relation to the board
+    // - uint8_T y_offset
+  }
+
+  /* draw() is in charge of rendering the piece,
+   * and all of the dropped blocks, to the screen.
+   */
   void draw() {
     for (uint8_t piece = PieceName::I; piece != PieceName::S; piece++) {
       draw(piece, piece * 5, 0);
@@ -92,7 +106,7 @@ public:
     draw(PieceName::Z, 10, 16);
 
     display->printToLcd();
-    display->printToSerial();
+    // display->printToSerial();
   }
 
   void draw(PieceName piece, uint8_t x_offset, uint8_t y_offset) {
@@ -118,6 +132,12 @@ void setup() {
   Serial.begin(9600);  // open the serial port at 9600 bps:
   lcd.begin(16, 2);
 
+  // create wall
+  lcd.setCursor(4, 0);
+  lcd.write(255);
+  lcd.setCursor(4, 1);
+  lcd.write(255);
+
   // display.draw(5, 5);
   // display.printToLcd();
 
@@ -125,19 +145,3 @@ void setup() {
 }
 
 void loop() {}
-
-// LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-// Display display(&lcd);
-
-// void setup() {
-//   Serial.begin(9600);  // open the serial port at 9600 bps:
-//   lcd.begin(16, 2);
-//   randomSeed(analogRead(0));
-// }
-
-// void loop() {
-//   display.draw(1, 1);
-
-//   display.printToLcd();
-//   delay(1000);
-// }
