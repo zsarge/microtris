@@ -73,17 +73,36 @@ class Minitris {
 private:
   Display* display;
 
+  const static uint8_t height = 2 * 8;
+  const static uint8_t width = 4 * 5;
+  bool droppedBuffer[height][width];
+
+  uint8_t x_offset;
+  uint8_t y_offset;
+
+  void resetToTop() {
+    x_offset = width / 2;
+    y_offset = 0;
+  }
+
 public:
 
-  Minitris(const LiquidCrystal* lcd_ptr) {
+  Minitris(const LiquidCrystal* lcd_ptr)
+    : x_offset(0), y_offset(0) {
     this->display = new Display(lcd_ptr);
+
+    for (uint8_t y = 0; y < height; y++)
+      for (uint8_t x = 0; x < width; x++)
+        this->droppedBuffer[y][x] = false;
+    resetToTop();
   }
+
   ~Minitris() {
     delete this->display;
   }
 
-// for use in scanning through a piece to see its state
-// after rotation
+  // for use in scanning through a piece to see its state
+  // after rotation
   bool at(uint8_t piece_x, uint8_t piece_y) {
     if (piece_x > 4 || piece_y > 4) return;
     // TODO: create instance variables:
@@ -93,23 +112,31 @@ public:
     // - uint8_T y_offset
   }
 
+  void tick() {
+    if (y_offset < height - 4)
+      y_offset++;
+  }
   /* draw() is in charge of rendering the piece,
    * and all of the dropped blocks, to the screen.
    */
   void draw() {
-    for (uint8_t piece = PieceName::I; piece != PieceName::S; piece++) {
-      draw(piece, piece * 5, 0);
-    }
-    for (uint8_t piece = PieceName::S; piece != PieceName::Z; piece++) {
-      draw(piece, (piece - PieceName::S) * 5, 16);
-    }
-    draw(PieceName::Z, 10, 16);
+    display->clear();
+
+    draw(S);
+
+    // for (uint8_t piece = PieceName::I; piece != PieceName::S; piece++) {
+    //   draw(piece, piece * 5, 0);
+    // }
+    // for (uint8_t piece = PieceName::S; piece != PieceName::Z; piece++) {
+    //   draw(piece, (piece - PieceName::S) * 5, 16);
+    // }
+    // draw(PieceName::Z, 10, 16);
 
     display->printToLcd();
     // display->printToSerial();
   }
 
-  void draw(PieceName piece, uint8_t x_offset, uint8_t y_offset) {
+  void draw(PieceName piece) {
     uint8_t width = 3;
     uint8_t height = 4;
 
@@ -118,9 +145,6 @@ public:
         display->set(x + x_offset, y + y_offset, pieces[piece][y][x]);
       }
     }
-  }
-
-  void tick() {
   }
 };
 
@@ -144,4 +168,8 @@ void setup() {
   minitris.draw();
 }
 
-void loop() {}
+void loop() {
+  minitris.tick();
+  minitris.draw();
+  delay(1000);
+}
