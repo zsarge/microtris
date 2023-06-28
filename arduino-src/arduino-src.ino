@@ -305,6 +305,7 @@ private:
   void resetToTop() {
     x_offset = width / 2;
     y_offset = 0;
+    piece->setDirection(North);
   }
 
   void setNextPiece() {
@@ -336,7 +337,7 @@ public:
     for (uint8_t y = 0; y < height; y++)
       for (uint8_t x = 0; x < width; x++)
         this->droppedBuffer[y][x] = false;
-    resetToTop();
+
     piece = new I();
     // piece = new O();
     // piece = new T();
@@ -344,6 +345,7 @@ public:
     // piece = new Z();
     // piece = new J();
     // piece = new L();
+    resetToTop();
   }
 
   ~Minitris() {
@@ -399,8 +401,47 @@ public:
   }
 
   void gameTick() {
-    moveDown();
+    if (pieceIsStuck()) {
+      dropPiece();
+      resetToTop();
+      setNextPiece();
+    } else {
+      moveDown();
+    }
+
+    // todo: check for clear lines?
   }
+
+  bool pieceIsStuck() {
+    // piece intersects bottom
+    if (y_offset >= height - piece->getHeight()) {
+      Serial.println("Piece is stuck!");
+      return true;
+    }
+    // piece intersects dropped pieces
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (
+          (piece->at(x, y) && droppedBuffer[y + y_offset + 1][x + x_offset]) ||  // piece below
+          (piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset])         // piece inside :(
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void dropPiece() {
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (piece->at(x, y)) {
+          droppedBuffer[y + y_offset][x + x_offset] = true;
+        }
+      }
+    }
+  }
+
   /* draw() is in charge of rendering the piece,
    * and all of the dropped blocks, to the screen.
    */
@@ -408,37 +449,29 @@ public:
     display->clear();
 
     drawPiece();
-
-    // for (uint8_t piece = PieceName::I; piece != PieceName::S; piece++) {
-    //   draw(piece, piece * 5, 0);
-    // }
-    // for (uint8_t piece = PieceName::S; piece != PieceName::Z; piece++) {
-    //   draw(piece, (piece - PieceName::S) * 5, 16);
-    // }
-    // draw(PieceName::Z, 10, 16);
+    drawGameBoard();
 
     display->printToLcd();
     // display->printToSerial();
   }
 
+  void drawGameBoard() {
+    // assume game board is same size as display
+    for (uint8_t y = 0; y < display->board.pixelsTall; y++) {
+      for (uint8_t x = 0; x < display->board.pixelsWide; x++) {
+        if (droppedBuffer[y][x]) {
+          display->draw(x, y);
+        }
+      }
+    }
+  }
+
   void drawPiece() {
-    Serial.print("drawing piece ... ");
-    Serial.println(millis());
     for (uint8_t y = 0; y < piece->getHeight(); y++) {
       for (uint8_t x = 0; x < piece->getWidth(); x++) {
         if (piece->at(x, y)) {
           display->draw(x + x_offset, y + y_offset);
         }
-        Serial.print("(");
-        Serial.print(x);
-        Serial.print(", ");
-        Serial.print(y);
-        Serial.print(") = ");
-        Serial.print(piece->at(x, y));
-        Serial.print("\t... getHeight() = ");
-        Serial.print(piece->getHeight());
-        Serial.print("\t... getWidth() = ");
-        Serial.println(piece->getWidth());
       }
     }
   }
