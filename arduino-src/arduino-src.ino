@@ -41,6 +41,23 @@ public:
     }
   }
 
+  void rotateCounterClockwise() {
+    switch (direction) {
+      case North:
+        direction = West;
+        break;
+      case West:
+        direction = South;
+        break;
+      case South:
+        direction = East;
+        break;
+      case East:
+        direction = North;
+        break;
+    }
+  }
+
   virtual ~Piece();
   virtual uint8_t getHeight();
   virtual uint8_t getWidth();
@@ -82,7 +99,7 @@ public:
   }
   // is there a more efficent way to do this? probably
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
       case North:
         return (bool[3][2]){
@@ -134,7 +151,7 @@ public:
   }
 
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
       case North:
         return (bool[3][2]){
@@ -162,6 +179,57 @@ public:
   }
 };
 
+class T : public Piece {
+public:
+  uint8_t getHeight() override {
+    switch (direction) {
+      case North:
+      case South:
+        return 3;
+      case East:
+      case West:
+        return 2;
+    }
+  }
+  uint8_t getWidth() override {
+    switch (direction) {
+      case North:
+      case South:
+        return 2;
+      case East:
+      case West:
+        return 3;
+    }
+  }
+
+  bool at(uint8_t x, uint8_t y) override {
+    if (x > getWidth() || y > getHeight()) return false;
+    switch (direction) {
+      case North:
+        return (bool[3][2]){
+          { 1, 0 },
+          { 1, 1 },
+          { 1, 0 },
+        }[y][x];
+      case East:
+        return (bool[2][3]){
+          { 1, 1, 1 },
+          { 0, 1, 0 },
+        }[y][x];
+      case South:
+        return (bool[3][2]){
+          { 0, 1 },
+          { 1, 1 },
+          { 0, 1 },
+        }[y][x];
+      case West:
+        return (bool[2][3]){
+          { 0, 1, 0 },
+          { 1, 1, 1 },
+        }[y][x];
+    }
+  }
+};
 
 class O : public Piece {
 public:
@@ -172,7 +240,7 @@ public:
     return 2;
   }
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     return true;
   }
 };
@@ -201,7 +269,7 @@ public:
   }
 
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     return true;
   }
 };
@@ -230,7 +298,7 @@ public:
   }
 
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
       case North:
         return (bool[3][2]){
@@ -282,7 +350,7 @@ public:
   }
 
   bool at(uint8_t x, uint8_t y) override {
-    if (x > getHeight() || y > getWidth()) return false;
+    if (x > getWidth() || y > getHeight()) return false;
     switch (direction) {
       case North:
         return (bool[3][2]){
@@ -297,7 +365,7 @@ public:
         }[y][x];
       case South:
         return (bool[3][2]){
-          { 0, 1 },  // S
+          { 0, 1 },  // Z
           { 1, 1 },
           { 1, 0 },
         }[y][x];
@@ -331,7 +399,13 @@ private:
 
   void setNextPiece() {
     delete piece;
-    piece = new J();
+    piece = new I();
+    // piece = new O();
+    // piece = new T();
+    // piece = new S();
+    // piece = new Z();
+    // piece = new J();
+    // piece = new L();
   }
 
   enum ButtonState : uint8_t {
@@ -353,7 +427,13 @@ public:
       for (uint8_t x = 0; x < width; x++)
         this->droppedBuffer[y][x] = false;
     resetToTop();
-    piece = new J();
+    // piece = new I();
+    // piece = new O();
+    piece = new T();
+    // piece = new S();
+    // piece = new Z();
+    // piece = new J();
+    // piece = new L();
   }
 
   ~Minitris() {
@@ -432,10 +512,6 @@ public:
    * and all of the dropped blocks, to the screen.
    */
   void draw() {
-    Serial.print("Piece height: ");
-    Serial.println(piece->getHeight());
-    Serial.print("Piece Width: ");
-    Serial.println(piece->getWidth());
     display->clear();
 
     drawPiece();
@@ -452,12 +528,24 @@ public:
     // display->printToSerial();
   }
 
-
-
   void drawPiece() {
+    Serial.print("drawing piece ... ");
+    Serial.println(millis());
     for (uint8_t y = 0; y < piece->getHeight(); y++) {
       for (uint8_t x = 0; x < piece->getWidth(); x++) {
-        display->set(x + x_offset, y + y_offset, piece->at(x, y));
+        if (piece->at(x, y)) {
+          display->draw(x + x_offset, y + y_offset);
+        }
+        Serial.print("(");
+        Serial.print(x);
+        Serial.print(", ");
+        Serial.print(y);
+        Serial.print(") = ");
+        Serial.print(piece->at(x, y));
+        Serial.print("\t... getHeight() = ");
+        Serial.print(piece->getHeight());
+        Serial.print("\t... getWidth() = ");
+        Serial.println(piece->getWidth());
       }
     }
   }
