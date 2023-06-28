@@ -441,11 +441,19 @@ public:
     lastButtonState = currentState;
   }
 
+  void reset() {
+    placePiece();
+    resetToTop();
+    setNextPiece();
+    draw();
+    if (pieceIsStuck()) {
+      loseGame();
+    }
+  }
+
   void gameTick() {
     if (pieceIsStuck()) {
-      placePiece();
-      resetToTop();
-      setNextPiece();
+      reset();
     } else {
       moveDown();
     }
@@ -538,12 +546,7 @@ public:
     while (!pieceIsStuck()) {
       moveDown();
     }
-    placePiece();
-    resetToTop();
-    if (pieceIsStuck()) {
-      loseGame();
-    }
-    setNextPiece();
+    reset();
   }
 
   /* draw() is in charge of rendering the piece,
@@ -560,7 +563,7 @@ public:
   }
 
   void drawGameBoard() {
-    // assume game board is same size as display
+    // assume game board is same size as display, just rotated 90 degrees
     for (uint8_t y = 0; y < height; y++) {
       for (uint8_t x = 0; x < width; x++) {
         if (droppedBuffer[y][x]) {
