@@ -293,8 +293,11 @@ class Minitris {
 private:
   Display* display;
 
-  const static uint8_t height = 2 * 8;
-  const static uint8_t width = 4 * 5;
+  // A minitris display is a sideways Display.
+  // That is:
+  // display->board.pixelsTall == width && display->board.pixelsWide == height
+  const static uint8_t height = 4 * 5;
+  const static uint8_t width = 2 * 8;
   bool droppedBuffer[height][width];
 
   // piece variables
@@ -309,14 +312,30 @@ private:
   }
 
   void setNextPiece() {
-    // delete piece;
-    // piece = new I();
-    // piece = new O();
-    // piece = new T();
-    // piece = new S();
-    // piece = new Z();
-    // piece = new J();
-    // piece = new L();
+    delete piece;
+    switch (random(7)) {
+      case 0:
+        piece = new I();
+        break;
+      case 1:
+        piece = new O();
+        break;
+      case 2:
+        piece = new T();
+        break;
+      case 3:
+        piece = new S();
+        break;
+      case 4:
+        piece = new Z();
+        break;
+      case 5:
+        piece = new J();
+        break;
+      case 6:
+        piece = new L();
+        break;
+    }
   }
 
   enum ButtonState : uint8_t {
@@ -339,12 +358,7 @@ public:
         this->droppedBuffer[y][x] = false;
 
     piece = new I();
-    // piece = new O();
-    // piece = new T();
-    // piece = new S();
-    // piece = new Z();
-    // piece = new J();
-    // piece = new L();
+    setNextPiece();
     resetToTop();
   }
 
@@ -381,33 +395,39 @@ public:
   }
 
   void inputTick() {
-    switch (readButton()) {
+    static ButtonState lastButtonState = None;
+    ButtonState currentState = readButton();
+    switch (currentState) {
       case None: break;
       case Up:
-        piece->rotateCounterClockwise();
-        break;
-      case Down:
-        piece->rotateClockwise();
-        break;
-      case Left:
         moveLeft();
         break;
-      case Right:
+      case Down:
         moveRight();
         break;
+      case Left:
+        piece->rotateClockwise();
+        break;
+      case Right:
+        piece->rotateCounterClockwise();
+        break;
       case Select:
+        if (lastButtonState != Select)
+          dropPiece();
         break;
     }
+    lastButtonState = currentState;
   }
 
   void gameTick() {
     if (pieceIsStuck()) {
-      dropPiece();
+      placePiece();
       resetToTop();
       setNextPiece();
     } else {
       moveDown();
     }
+    clearFullLines();
 
     // todo: check for clear lines?
   }
@@ -432,7 +452,57 @@ public:
     return false;
   }
 
-  void dropPiece() {
+  bool lineIsFull(uint8_t line) {
+    for (uint8_t x = 0; x < width; x++) {
+      if (!droppedBuffer[line][x]) return false;
+    }
+    Serial.print(line);
+    Serial.println(" line is full");
+    return true;
+  }
+
+  void moveBoardDown(uint8_t line) {
+    for (uint8_t y = line; y > 0; y--) {
+      for (uint8_t x = 0; x < width; x++) {
+        // y-1 is up 1 row from the starting line
+        droppedBuffer[y][x] = droppedBuffer[y - 1][x];
+      }
+    }
+  }
+
+  void clearFullLines() {
+    // start at bottom row
+    // note (0,0) is top left
+    for (uint8_t y = height - 1; y > 0; y--) {
+      if (lineIsFull(y)) {
+        // clear line
+        for (uint8_t x = 0; x < width; x++) {
+          droppedBuffer[y][x] = false;
+        }
+
+        // move everything else down 1 row
+        moveBoardDown(y);
+      }
+    }
+  }
+
+  void loseGame() {
+    this->display->lcd->setCursor(6, 0);
+    this->display->lcd->print("You Lose!");
+    this->display->lcd->setCursor(6, 1);
+    this->display->lcd->print("Score: ?");
+    delay(5000);
+    this->display->lcd->clear();
+    this->display->lcd->setCursor(4, 0);
+    this->display->lcd->write(255);
+    this->display->lcd->setCursor(4, 1);
+    this->display->lcd->write(255);
+    for (uint8_t y = 0; y < height; y++)
+      for (uint8_t x = 0; x < width; x++)
+        this->droppedBuffer[y][x] = false;
+  }
+
+  void placePiece() {
     for (uint8_t y = 0; y < piece->getHeight(); y++) {
       for (uint8_t x = 0; x < piece->getWidth(); x++) {
         if (piece->at(x, y)) {
@@ -440,6 +510,18 @@ public:
         }
       }
     }
+  }
+
+  void dropPiece() {
+    while (!pieceIsStuck()) {
+      moveDown();
+    }
+    placePiece();
+    resetToTop();
+    if (pieceIsStuck()) {
+      loseGame();
+    }
+    setNextPiece();
   }
 
   /* draw() is in charge of rendering the piece,
@@ -457,10 +539,10 @@ public:
 
   void drawGameBoard() {
     // assume game board is same size as display
-    for (uint8_t y = 0; y < display->board.pixelsTall; y++) {
-      for (uint8_t x = 0; x < display->board.pixelsWide; x++) {
+    for (uint8_t y = 0; y < height; y++) {
+      for (uint8_t x = 0; x < width; x++) {
         if (droppedBuffer[y][x]) {
-          display->draw(x, y);
+          display->draw(y, x);
         }
       }
     }
@@ -470,7 +552,7 @@ public:
     for (uint8_t y = 0; y < piece->getHeight(); y++) {
       for (uint8_t x = 0; x < piece->getWidth(); x++) {
         if (piece->at(x, y)) {
-          display->draw(x + x_offset, y + y_offset);
+          display->draw(y + y_offset, x + x_offset);
         }
       }
     }
@@ -485,6 +567,7 @@ void setup() {
   Serial.begin(9600);  // open the serial port at 9600 bps:
   Serial.println("Serial port initalized...");
   lcd.begin(16, 2);
+  randomSeed(analogRead(0));
 
   // create wall
   lcd.setCursor(4, 0);
@@ -498,9 +581,12 @@ void setup() {
   minitris.draw();
 }
 
+int tickTimes = 0;
 void loop() {
   minitris.inputTick();
-  minitris.gameTick();
+  if (tickTimes % 10 == 0)
+    minitris.gameTick();
   minitris.draw();
-  delay(500);
+  delay(100);
+  tickTimes++;
 }

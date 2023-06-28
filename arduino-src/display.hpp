@@ -7,6 +7,7 @@
 class Display {
 public:
   byte charBuffer[8][8];
+  LiquidCrystal* lcd;
   struct {
     uint8_t pixelsWide;
     uint8_t pixelsTall;
@@ -32,7 +33,6 @@ public:
   void clear();
 
 private:
-  LiquidCrystal* lcd;
   uint8_t getCharacterBlock(uint8_t x, uint8_t y);
   void printByte(byte val);
   byte getPattern(uint8_t x);
