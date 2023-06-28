@@ -380,13 +380,35 @@ public:
 
 
   void moveLeft() {
-    if (x_offset > 0)
-      x_offset--;
+    if (x_offset <= 0) return;
+
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (
+          piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset - 1]  // there is a piece to the left
+        ) {
+          return;
+        }
+      }
+    }
+
+    x_offset--;
   }
 
   void moveRight() {
-    if (x_offset < width - piece->getWidth())
-      x_offset++;
+    if (x_offset >= width - piece->getWidth()) return;
+
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (
+          piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset + 1]  // there is a piece to the left
+        ) {
+          return;
+        }
+      }
+    }
+
+    x_offset++;
   }
 
   void moveDown() {
