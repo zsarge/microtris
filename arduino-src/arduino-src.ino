@@ -305,6 +305,8 @@ private:
   uint8_t x_offset;
   uint8_t y_offset;
 
+
+
   void resetToTop() {
     x_offset = width / 2;
     y_offset = 0;
@@ -348,9 +350,10 @@ private:
   };
 
 public:
+  uint8_t score;
 
   Minitris(const LiquidCrystal* lcd_ptr)
-    : x_offset(0), y_offset(0) {
+    : x_offset(0), y_offset(0), score(0) {
     this->display = new Display(lcd_ptr);
 
     for (uint8_t y = 0; y < height; y++)
@@ -416,6 +419,38 @@ public:
       y_offset++;
   }
 
+  void rotateClockwise() {
+    piece->rotateClockwise();
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (
+          // out of bounds
+          y + y_offset >= height || x + x_offset >= width
+          || piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset]  // piece overlaps
+        ) {
+          piece->rotateCounterClockwise();  // abort! not safe!
+          return;
+        }
+      }
+    }
+  }
+
+  void rotateCounterClockwise() {
+    piece->rotateCounterClockwise();
+    for (uint8_t y = 0; y < piece->getHeight(); y++) {
+      for (uint8_t x = 0; x < piece->getWidth(); x++) {
+        if (
+          // out of bounds
+          y + y_offset >= height || x + x_offset >= width
+          || piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset]  // piece overlaps
+        ) {
+          piece->rotateClockwise();  // abort! not safe!
+          return;
+        }
+      }
+    }
+  }
+
   void inputTick() {
     static ButtonState lastButtonState = None;
     ButtonState currentState = readButton();
@@ -428,10 +463,10 @@ public:
         moveRight();
         break;
       case Left:
-        piece->rotateClockwise();
+        rotateClockwise();
         break;
       case Right:
-        piece->rotateCounterClockwise();
+        rotateCounterClockwise();
         break;
       case Select:
         if (lastButtonState != Select)
@@ -505,6 +540,7 @@ public:
     // note (0,0) is top left
     for (uint8_t y = height - 1; y > 0; y--) {
       if (lineIsFull(y)) {
+        score++;
         // clear line
         for (uint8_t x = 0; x < width; x++) {
           droppedBuffer[y][x] = false;
@@ -516,11 +552,16 @@ public:
     }
   }
 
+  void drawScore() {
+    this->display->lcd->setCursor(6, 1);
+    this->display->lcd->print("Score: ");
+    this->display->lcd->print(score);
+  }
+
   void loseGame() {
     this->display->lcd->setCursor(6, 0);
     this->display->lcd->print("You Lose!");
-    this->display->lcd->setCursor(6, 1);
-    this->display->lcd->print("Score: ?");
+    drawScore();
     delay(5000);
     this->display->lcd->clear();
     this->display->lcd->setCursor(4, 0);
@@ -559,6 +600,7 @@ public:
     drawGameBoard();
 
     display->printToLcd();
+    drawScore();
     // display->printToSerial();
   }
 
@@ -609,7 +651,7 @@ void setup() {
 int tickTimes = 0;
 void loop() {
   minitris.inputTick();
-  if (tickTimes % 10 == 0)
+  if (tickTimes % (10 - minitris.score) == 0)
     minitris.gameTick();
   minitris.draw();
   delay(100);
