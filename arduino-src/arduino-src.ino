@@ -479,8 +479,10 @@ public:
         rotateCounterClockwise();
         break;
       case Select:
-        if (lastButtonState != Select)
+        if (lastButtonState != Select) {
+          Serial.println("sound:harddrop");
           dropPiece();
+        }
         break;
     }
     lastButtonState = currentState;
@@ -651,13 +653,12 @@ void setup() {
   Serial.println("Serial port initalized...");
   lcd.begin(16, 2);
   randomSeed(analogRead(0));
-
   // create wall
   lcd.setCursor(4, 0);
   lcd.write(255);
   lcd.setCursor(4, 1);
   lcd.write(255);
-
+  Serial.println("music:gamestart");
   // display.draw(5, 5);
   // display.printToLcd();
 
