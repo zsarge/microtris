@@ -455,6 +455,16 @@ public:
     static ButtonState lastButtonState = None;
     ButtonState currentState = readButton();
     switch (currentState) {
+      case Up:
+      case Down:
+        Serial.println("sound:move");
+        break;
+      case Left:
+      case Right:
+        Serial.println("sound:rotate");
+        break;
+    }
+    switch (currentState) {
       case None: break;
       case Up:
         moveLeft();
@@ -482,6 +492,7 @@ public:
     setNextPiece();
     draw();
     if (pieceIsStuck()) {
+      Serial.println("sound:gameover");
       loseGame();
     }
   }
@@ -500,7 +511,7 @@ public:
   bool pieceIsStuck() {
     // piece intersects bottom
     if (y_offset >= height - piece->getHeight()) {
-      Serial.println("Piece is stuck!");
+      Serial.println("sound:landed");
       return true;
     }
     // piece intersects dropped pieces
@@ -510,6 +521,7 @@ public:
           (piece->at(x, y) && droppedBuffer[y + y_offset + 1][x + x_offset]) ||  // piece below
           (piece->at(x, y) && droppedBuffer[y + y_offset][x + x_offset])         // piece inside :(
         ) {
+          Serial.println("sound:landed");
           return true;
         }
       }
@@ -536,11 +548,13 @@ public:
   }
 
   void clearFullLines() {
+    bool hasClearedLine = false;
     // start at bottom row
     // note (0,0) is top left
     for (uint8_t y = height - 1; y > 0; y--) {
       if (lineIsFull(y)) {
         score++;
+        hasClearedLine = true;
         // clear line
         for (uint8_t x = 0; x < width; x++) {
           droppedBuffer[y][x] = false;
@@ -550,6 +564,8 @@ public:
         moveBoardDown(y);
       }
     }
+    if (hasClearedLine)
+      Serial.println("sound:clearline");
   }
 
   void drawScore() {
