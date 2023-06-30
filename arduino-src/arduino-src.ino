@@ -668,9 +668,9 @@ void setup() {
 int tickTimes = 0;
 void loop() {
   minitris.inputTick();
-  if (tickTimes % (10 - minitris.score) == 0)
+  if (tickTimes % (8 - minitris.score) == 0)
     minitris.gameTick();
   minitris.draw();
-  delay(100);
+  delay(80);
   tickTimes++;
 }
